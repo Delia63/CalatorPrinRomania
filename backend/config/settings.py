@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+import sys
 from pathlib import Path
+
+# GDAL/GEOS for PostGIS (conda environment)
+GDAL_LIBRARY_PATH = os.path.join(sys.prefix, 'Library', 'bin', 'gdal.dll')
+GEOS_LIBRARY_PATH = os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -89,8 +95,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'calaor_romania_db',
-        'USER': 'calaor_user',
+        'NAME': 'calator_romania_db',
+        'USER': 'calator_user',
         'PASSWORD': 'parola_super_sigura_123',
         'HOST': 'localhost',
         'PORT': '5432',
@@ -157,3 +163,6 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 }
+
+# Custom User Model
+AUTH_USER_MODEL = 'utilizatori.Utilizator'
