@@ -97,7 +97,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'calator_romania_db',
         'USER': 'calator_user',
-        'PASSWORD': 'parola_super_sigura_123',
+        'PASSWORD': 'parola_123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
