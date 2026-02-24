@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import AtractieTuristica
+from .serializers import AtractieTuristicaSerializer
 
-# Create your views here.
+class AtractieTuristicaViewSet(viewsets.ModelViewSet):
+    queryset = AtractieTuristica.objects.all()
+    serializer_class = AtractieTuristicaSerializer
