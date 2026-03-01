@@ -14,6 +14,10 @@ import os
 ORS_API_KEY = os.environ.get('ORS_API_KEY', '')
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # GDAL/GEOS for PostGIS (conda environment)
 GDAL_LIBRARY_PATH = os.path.join(sys.prefix, 'Library', 'bin', 'gdal.dll')
