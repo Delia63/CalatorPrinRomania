@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+ORS_API_KEY = os.environ.get('ORS_API_KEY', '')
 import sys
 from pathlib import Path
 
