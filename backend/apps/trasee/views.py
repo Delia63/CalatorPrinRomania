@@ -79,7 +79,7 @@ class TraseuViewSet(viewsets.ModelViewSet):
             'Authorization': settings.ORS_API_KEY,
             'Content-Type': 'application/json'
         }
-        body = {'coordinates': [start_coords, end_coords]}
+        body = {'coordinates': [start_coords, end_coords], 'preference': 'shortest'}
 
         try:
             r = requests.post(url, json=body, headers=headers)
