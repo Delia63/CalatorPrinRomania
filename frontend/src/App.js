@@ -1,10 +1,41 @@
+import React, { use } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Navbar from "./components/Navbar";
 import Harta from './components/Harta';
+import Login from './pages/Login';
+import Register from "./pages/Register";
+
+function ProtectedRoute({ children }) {
+  const { utilizator, loading } = useAuth();
+  if(loading) return <div>Loading...</div>;
+  return utilizator ? children : <Navigate to="/login" />;
+}
+
+function AppContent() {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <div style={{ paddingTop: '56px', height: '100vh', boxSizing: 'border-box' }}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Harta />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
 
 function App() {
   return (
-    <div>
-      <Harta />
-    </div>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
