@@ -1,13 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FormularTraseu from './FormularTraseu';
+
+function getEmoji(tip) {
+  const emojiMap = {
+    'castel': '🏰',
+    'biserica': '⛪',
+    'manastire': '⛪',
+    'pestera': '🕳️',
+    'muzeu': '🏛️',
+    'cascada': '💧',
+    'lac': '🏞️',
+    'munte': '⛰️',
+    'parc': '🌳',
+    'rezervatie': '🌿',
+  };
+  const tipLower = (tip || '').toLowerCase();
+  for(const [cheie, emoji] of Object.entries(emojiMap)) {
+    if(tipLower.includes(cheie)) return emoji;
+  }
+  return '📍';
+}
+
+function createEmojiIcon(emoji) {
+  return L.divIcon({
+    html: `<div style="font-size:24px;line-height:1;">${emoji}</div>`,
+    className: '',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15],
+  });
+}
 
 function Harta() {
   const [atractii, setAtractii] = useState([]);
   const [traseu, setTraseu] = useState(null);
   const [atractiiTraseu, setAtractiiTraseu] = useState([]);
   const [infTraseu, setInfTraseu] = useState(null);
+  const [ghicire, setGhicire] = useState({});
 
   useEffect(() => {
     fetch('http://localhost:8000/api/atractii/')
@@ -30,49 +62,98 @@ function Harta() {
     });
   };
 
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <FormularTraseu onCalculeaza={handleCalculeaza} />
+  const handleGhicire = async (atractieId, raspuns) => {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`http://localhost:8000/api/atractii/${atractieId}/ghiceste/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ raspuns })
+    });
+    const data = await response.json();
+    setGhicire(prev => ({ ...prev, [atractieId]: { raspuns, rezultat: data } }));
+  };
 
+  const listaAfisata = atractiiTraseu.length > 0 ? atractiiTraseu : atractii;
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <FormularTraseu onCalculeaza={handleCalculeaza} />
       {infTraseu && (
-        <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 1000,
-          background: 'white', padding: '12px', borderRadius: '8px', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
-            <p style={{ margin: 0}}>📏<strong>{infTraseu.distantaKm} km</strong></p>
-            <p style={{ margin: '4px 0 0 0'}}>⏱️<strong>{infTraseu.durataMin} min</strong></p>
-            <p style={{ margin: '4px 0 0 0'}}>📍<strong>{atractiiTraseu.length}</strong> atractii pe traseu</p>
+        <div style={{
+          position: 'absolute', top: 20, right: 20, zIndex: 1000,
+          background: 'white', padding: '12px', borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+        }}>
+          <p style={{ margin: 0 }}>📏 <strong>{infTraseu.distantaKm} km</strong></p>
+          <p style={{ margin: '4px 0 0 0' }}>⏱️ <strong>{infTraseu.durataMin} min</strong></p>
+          <p style={{ margin: '4px 0 0 0' }}>📍 <strong>{atractiiTraseu.length}</strong> atracții pe traseu</p>
         </div>
       )}
-
-      <MapContainer
-        center={[45.9, 25.0]}
-        zoom={7}
-        style={{ width: '100%', height: '100%' }}
-      >
+      <MapContainer center={[45.9, 25.0]} zoom={7} style={{ width: '100%', height: '100%' }}>
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
-        {traseu && (
-          <Polyline positions={traseu} color='blue' weight={4} />
-        )}
-
-        {(atractiiTraseu.length > 0 ? atractiiTraseu : atractii).map(atractie => (
-          <Marker
-            key={atractie.id}
-            position={[atractie.latitudine, atractie.longitudine]}
-          >
-            <Popup>
-              <strong>{atractie.nume}</strong><br />
-              Tip: {atractie.tip}<br />
-              Tarif: {atractie.tarif} RON
-            </Popup>
-          </Marker>
-        ))}
+        {traseu && <Polyline positions={traseu} color="blue" weight={4} />}
+        {listaAfisata.map(atractie => {
+          const emoji = getEmoji(atractie.tip);
+          const stareGhicire = ghicire[atractie.id];
+          return (
+            <Marker
+              key={atractie.id}
+              position={[atractie.latitudine, atractie.longitudine]}
+              icon={createEmojiIcon(emoji)}
+            >
+              <Popup minWidth={220}>
+                <strong style={{ fontSize: '15px' }}>
+                  {emoji} {(atractie.curiozitate && !stareGhicire?.rezultat?.corect) ? '❓ ???' : atractie.nume}
+                </strong>
+                <p style={{ margin: '4px 0', color: '#555', fontSize: '12px' }}>
+                  {atractie.tip}{(stareGhicire?.rezultat?.corect || !atractie.curiozitate) ? ` | ${atractie.tarif} RON` : ''}
+                </p>
+                {atractie.curiozitate && (
+                  <div style={{ marginTop: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
+                    <p style={{ margin: '0 0 6px', fontSize: '12px', fontStyle: 'italic' }}>
+                      🧩 {atractie.curiozitate}
+                    </p>
+                    {stareGhicire?.rezultat?.corect ? (
+                      <p style={{ color: 'green', fontSize: '12px', margin: 0 }}>
+                        ✅ {stareGhicire.rezultat.mesaj}
+                      </p>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Ghicește numele..."
+                          defaultValue={stareGhicire?.raspuns || ''}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleGhicire(atractie.id, e.target.value);
+                          }}
+                          style={{ width: '100%', padding: '4px', boxSizing: 'border-box',
+                            borderRadius: '4px', border: '1px solid #ccc', fontSize: '12px' }}
+                        />
+                        {stareGhicire?.rezultat?.corect === false && (
+                          <p style={{ color: 'red', fontSize: '11px', margin: '4px 0 0' }}>
+                            ❌ {stareGhicire.rezultat.mesaj}
+                          </p>
+                        )}
+                        <p style={{ fontSize: '10px', color: '#888', margin: '4px 0 0' }}>
+                          Apasă Enter pentru a ghici
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
-  ); 
+  );
 }
 
 export default Harta;
