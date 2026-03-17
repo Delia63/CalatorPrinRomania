@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Harta from './components/Harta';
 import Login from './pages/Login';
 import Register from "./pages/Register";
+import Profil from "./pages/Profil";
 
 function ProtectedRoute({ children }) {
   const { utilizator, loading } = useAuth();
@@ -23,6 +24,11 @@ function AppContent() {
           <Route path="/" element={
             <ProtectedRoute>
               <Harta />
+            </ProtectedRoute>
+          } />
+          <Route path="/profil" element={
+            <ProtectedRoute>
+              <Profil />
             </ProtectedRoute>
           } />
         </Routes>

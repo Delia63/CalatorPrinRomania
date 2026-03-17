@@ -66,10 +66,10 @@ class DescoperaAtractieView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
     
     def _verifica_badges(self, utilizator):
-        nr_descoperiri = DescoperiAtractie.objects.filter(utilizator=utilizator).count()
+        nr_descoperiri = DescoperiAtractie.objects.filter(utilizator=utilizator, esteDescoperita='D').count()
         badges_noi=[]
 
-        praguri = {1: 'Prima descoperire', 5: 'Explorator', 10: 'Aventurier', 25: 'Călător', 50: 'Expert'}
+        praguri = {1: 'Prima descoperire', 5: 'Explorator', 10: 'Explorator Local', 25: 'Aventurier', 50: 'Maestru al României'}
 
         for prag, nume_badge in  praguri.items():
             if nr_descoperiri >= prag:
@@ -77,6 +77,12 @@ class DescoperaAtractieView(generics.CreateAPIView):
                 if badge and not UtilizatorBadge.objects.filter(utilizator=utilizator, badge=badge).exists():
                     UtilizatorBadge.objects.create(utilizator=utilizator, badge=badge)
                     badges_noi.append(nume_badge)
+                    # ADAUGĂ NOTIFICARE
+                    Notificare.objects.create(
+                        utilizator=utilizator,
+                        tip='badge',
+                        mesaj=f"Felicitări! Ai obținut badge-ul: {nume_badge}"
+                    )
 
         return badges_noi
 

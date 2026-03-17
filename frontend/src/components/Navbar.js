@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Notificari from './Notificari';
 
 function Navbar() {
     const { utilizator, logout } = useAuth();
@@ -22,9 +23,11 @@ function Navbar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {utilizator ? (
           <>
-            <span style={{ fontSize: '14px' }}>
-              👤 {utilizator.username} | ⭐ {utilizator.xp} XP
-            </span>
+            <Notificari />
+            <Link to="/profil" style={{ color: 'white', textDecoration: 'none', fontSize: '14px', marginRight: '10px', cursor: 'pointer' }}>
+                👤 {utilizator.username} | ⭐ {utilizator.xp} XP
+            </Link>
+
             <button onClick={handleLogout}
               style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.2)',
                 color: 'white', border: '1px solid rgba(255,255,255,0.4)',

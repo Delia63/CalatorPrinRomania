@@ -268,6 +268,18 @@ class Command(BaseCommand):
     def _seed_badge_uri(self):
         badge_uri = [
             {
+                'nume': 'Prima descoperire',
+                'descriere': 'Ai descoperit prima ta atracție turistică!',
+                'criteriu': 'total_descoperiri >= 1',
+                'iconUrl': '🎖️',
+            },
+            {
+                'nume': 'Explorator',
+                'descriere': 'Ai descoperit 5 atracții turistice',
+                'criteriu': 'total_descoperiri >= 5',
+                'iconUrl': '🚀',
+            },
+            {
                 'nume': 'Exploratorul Carpaților',
                 'descriere': 'Ai descoperit 5 atracții montane sau peșteri',
                 'criteriu': 'descoperiri_munte_pestera >= 5',
