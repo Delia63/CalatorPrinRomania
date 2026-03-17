@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import Utilizator, Badge, UtilizatorBadge
+from .models import Utilizator, Badge, UtilizatorBadge, Notificare, DescoperiAtractie
 
 class InregistrareSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -46,3 +46,15 @@ class UtilizatorBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UtilizatorBadge
         fields = ('id', 'badge', 'dataObtinere')
+
+class NotificareSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notificare
+        fields = '__all__'
+
+class DescoperireAtractieSerializer(serializers.ModelSerializer):
+    atractie_nume = serializers.ReadOnlyField(source='atractie.nume')
+
+    class Meta:
+        model = DescoperiAtractie
+        fields = ('id', 'atractie', 'atractie_nume', 'esteDescoperita', 'dataDescoperire', 'incercari')

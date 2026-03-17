@@ -109,10 +109,22 @@ class TraseuViewSet(viewsets.ModelViewSet):
                     'imagineCopertaUrl': atractie.imagineCopertaUrl,
                 })
 
-        return Response({
+        res_data = {
             'geojson': ruta,
             'distantaKm': round(summary['distance'] / 1000, 2),
             'durataMin': round(summary['duration'] / 60),
             'atractii': atractii_pe_traseu,
-        })
+        }
+
+        if request.user.is_authenticated:
+            Traseu.objects.create(
+                utilizator = request.user,
+                punctStart = punct_start,
+                punctSosire = punct_sosire,
+                distantaKm = res_data['distantaKm'],
+                durataMin = res_data['durataMin'],
+                tip = 'automat'
+            )
+
+        return Response(res_data)
             

@@ -45,17 +45,46 @@ class UtilizatorBadge(models.Model):
         on_delete=models.CASCADE,
         related_name='utilizatori'
     )
+    dataObtinere = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'utilizator_badge'
         verbose_name = 'Utilizator Badge'
         verbose_name_plural = 'Utilizator Badge-uri'
         unique_together = ('utilizator', 'badge')
-
+    
     def __str__(self):
         return f"{self.utilizator.username} - {self.badge.nume}"
 
+    
+class Notificare(models.Model):
+    TIP_CHOICES = [
+        ('badge', 'Badge Nou'),
+        ('recenzie', 'Status Recenzie'),
+        ('admin', 'Mesaj Admin'),
+        ('altul', 'Altul'),
+    ]
 
+    mesaj = models.TextField()
+    tip = models.CharField(max_length=20, choices=TIP_CHOICES, default='altul')
+    esteCitita = models.BooleanField(default=False)
+    dataCreare = models.DateTimeField(auto_now_add=True)
+    utilizator = models.ForeignKey(
+        Utilizator,
+        on_delete=models.CASCADE,
+        related_name='notificari'
+    )
+
+    class Meta:
+        db_table = 'notificare'
+        verbose_name = 'Notificare'
+        verbose_name_plural = 'Notificari'
+        ordering = ['-dataCreare']
+    
+    def __str__(self):
+        return f"{self.utilizator.username} - {self.tip}"
+
+    
 class DescoperiAtractie(models.Model):
     """Progresul unui utilizator în ghicirea unei atracții."""
     esteDescoperita = models.CharField(max_length=1, default='N')  # 'D' sau 'N'

@@ -3,9 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Utilizator, Badge, UtilizatorBadge, DescoperiAtractie
+from .models import Utilizator, Badge, UtilizatorBadge, DescoperiAtractie, Notificare
 from .serializers import (
-    InregistrareSerializer, UtilizatorSerializer, BadgeSerializer, UtilizatorBadgeSerializer
+    InregistrareSerializer, UtilizatorSerializer, BadgeSerializer, UtilizatorBadgeSerializer,
+    NotificareSerializer, DescoperireAtractieSerializer
 )
 from apps.atractii.models import AtractieTuristica
 
@@ -78,4 +79,40 @@ class DescoperaAtractieView(generics.CreateAPIView):
                     badges_noi.append(nume_badge)
 
         return badges_noi
+
+class NotificareViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificareSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notificare.objects.filter(utilizator=self.request.user)
     
+    @action(detail=False, methods=['get'])
+    def necitite(self, request):
+        notificari = self.get_queryset().filter(esteCitita=False)
+        serializer = self.get_serializer(notificari, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['patch'])
+    def marcheaza_citita(self, request, pk=None):
+        notificare = self.get_object()
+        notificare.esteCitita = True
+        notificare.save()
+        return Response({'status': 'notificare citită'})
+    
+class ProgresUtilizatorView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Am pus 'request' corect și folosim 'request.user'
+        nr_descoperiri = DescoperiAtractie.objects.filter(utilizator=request.user, esteDescoperita='D').count()
+        nr_badges = UtilizatorBadge.objects.filter(utilizator=request.user).count()
+
+        return Response({
+            'username': request.user.username,
+            'xp': request.user.xp,
+            'nivel': request.user.nivel,
+            'atractii_descoperite': nr_descoperiri,
+            'badges_total': nr_badges,
+        })
+
