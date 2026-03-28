@@ -23,7 +23,8 @@ function Profil() {
         
         fetch('http://localhost:8000/api/utilizatori/badges/ale-mele/', { headers })
             .then(res => res.json())
-            .then(data => setBadges(data));
+            .then(data => setBadges(Array.isArray(data) ? data : (data.results || [])))
+            .catch(() => setBadges([]));
     }, []);
 
     if(!progres) return <div style={{ padding: '20px' }}>Se încarcă profilul...</div>;

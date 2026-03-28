@@ -10,7 +10,8 @@ function Notificari() {
             headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())
-        .then(data => setNotificari(data || []));
+        .then(data => setNotificari(Array.isArray(data) ? data : (data.results || [])))
+        .catch(() => setNotificari([]));
     };
 
     useEffect(() => {

@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FormularTraseu from './FormularTraseu';
+import RecenziiAtractie from './RecenziiAtractie';
 
 function getEmoji(tip) {
   const emojiMap = {
@@ -147,6 +148,8 @@ function Harta() {
                     )}
                   </div>
                 )}
+                {/* Recenzii */}
+                <RecenziiAtractie atractieId={atractie.id} />
               </Popup>
             </Marker>
           );
