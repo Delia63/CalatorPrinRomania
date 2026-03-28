@@ -35,7 +35,7 @@ class ImagineRecenzie(models.Model):
         on_delete=models.CASCADE,
         related_name='imagini'
     )
-    imagineUrl = models.CharField(max_length=255)
+    imagine = models.ImageField(upload_to='recenzii/', blank=True, null=True)
 
     class Meta:
         db_table = 'imagine_recenzie'

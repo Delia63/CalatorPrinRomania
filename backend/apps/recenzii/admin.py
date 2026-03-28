@@ -18,4 +18,4 @@ class RecenzieAdmin(admin.ModelAdmin):
 
 @admin.register(ImagineRecenzie)
 class ImagineRecenzieAdmin(admin.ModelAdmin):
-    list_display = ('recenzie', 'imagineUrl')
+    list_display = ('recenzie', 'imagine')

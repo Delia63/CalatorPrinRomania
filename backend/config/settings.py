@@ -181,3 +181,5 @@ SIMPLE_JWT = {
 
 # Custom User Model
 AUTH_USER_MODEL = 'utilizatori.Utilizator'
+
+
