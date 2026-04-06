@@ -8,8 +8,28 @@ from apps.utilizatori.models import DescoperiAtractie, Badge, UtilizatorBadge, N
 from django.utils import timezone
 
 class AtractieTuristicaViewSet(viewsets.ModelViewSet):
-    queryset = AtractieTuristica.objects.all()
     serializer_class = AtractieTuristicaSerializer
+
+    def get_queryset(self):
+        queryset = AtractieTuristica.objects.all()
+
+        tip = self.request.query_params.get('tip')
+        if tip:
+            queryset = queryset.filter(tip__icontains=tip)
+        
+        rating_min = self.request.query_params.get('rating_min')
+        if rating_min:
+            queryset = queryset.filter(ratingMediu__gte=float(rating_min))
+
+        tarif_max = self.request.query_params.get('tarif_max')
+        if tarif_max:
+            queryset = queryset.filter(tarif__lte=float(tarif_max))
+        
+        gratuit = self.request.query_params.get('gratuit')
+        if gratuit and gratuit.lower() == 'true':
+            queryset = queryset.filter(tarif=0)
+
+        return queryset
 
     @action(detail=True, methods=['get'], url_path='curiozitate', 
             permission_classes=[AllowAny])

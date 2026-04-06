@@ -127,4 +127,11 @@ class TraseuViewSet(viewsets.ModelViewSet):
             )
 
         return Response(res_data)
+    
+    @action(detail=False, methods=['get'], url_path='prestabilite')
+    def prestabilite(self, request):
+        trasee = Traseu.objects.filter(estePrestabilit=True)
+        serializer = self.get_serializer(trasee, many=True)
+
+        return Response(serializer.data)
             

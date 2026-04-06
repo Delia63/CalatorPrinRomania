@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from apps.atractii.models import AtractieTuristica
 from apps.regiuni.models import PreparatLocal, Festival
 from apps.utilizatori.models import Badge
+from apps.trasee.models import Traseu, PunctTraseu
 
 
 class Command(BaseCommand):
@@ -21,12 +22,16 @@ class Command(BaseCommand):
             PreparatLocal.objects.all().delete()
             Festival.objects.all().delete()
             Badge.objects.all().delete()
+    
+            Traseu.objects.filter(estePrestabilit=True).delete()
+
             self.stdout.write(self.style.WARNING('Date șterse!'))
 
         self._seed_atractii()
         self._seed_preparate()
         self._seed_festivaluri()
         self._seed_badge_uri()
+        self._seed_trasee_prestabilite()
 
         self.stdout.write(self.style.SUCCESS('Date de test adăugate cu succes!'))
 
@@ -338,3 +343,77 @@ class Command(BaseCommand):
             if created:
                 count += 1
         self.stdout.write(f'  Badge-uri: {count} adăugate')
+
+    def _seed_trasee_prestabilite(self):
+        trasee = [
+            {
+                'punctStart': 'Brașov',
+                'punctSosire': 'Sibiu',
+                'distantaKm': 170,
+                'durataMin': 180,
+                'tip': 'cultural',
+                'atractii_nume': ['Castelul Bran', 'Castelul Peleș', 'Biserica Neagră', 'Muzeul ASTRA'],
+            },
+            {
+                'punctStart': 'Cluj-Napoca',
+                'punctSosire': 'Alba Iulia',
+                'distantaKm': 110,
+                'durataMin': 100,
+                'tip': 'istoric',
+                'atractii_nume': ['Salina Turda', 'Cetatea Alba Carolina'],
+            },
+            {
+                'punctStart': 'Suceava',
+                'punctSosire': 'Gura Humorului',
+                'distantaKm': 50,
+                'durataMin': 55,
+                'tip': 'religios',
+                'atractii_nume': ['Mănăstirea Voroneț', 'Mănăstirea Sucevița'],
+            },
+            {
+                'punctStart': 'Hunedoara',
+                'punctSosire': 'Petroșani',
+                'distantaKm': 70,
+                'durataMin': 80,
+                'tip': 'aventură',
+                'atractii_nume': ['Castelul Corvinilor', 'Peștera Muierilor'],
+            },
+            {
+                'punctStart': 'Brașov',
+                'punctSosire': 'Curtea de Argeș',
+                'distantaKm': 200,
+                'durataMin': 240,
+                'tip': 'natură',
+                'atractii_nume': ['Sfinxul Bucegilor', 'Transfăgărășanul'],
+            },
+        ]
+
+        count = 0
+        for data in trasee:
+            atractii_nume = data.pop('atractii_nume')
+
+            if Traseu.objects.filter(
+                punctStart=data['punctStart'],
+                punctSosire=data['punctSosire'],
+                estePrestabilit=True
+            ).exists():
+                continue
+
+            traseu = Traseu.objects.create(
+                estePrestabilit=True,
+                utilizator=None,
+                **data
+            )
+
+            for i, nume in enumerate(atractii_nume):
+                atractie = AtractieTuristica.objects.filter(nume=nume).first()
+                if atractie:
+                    PunctTraseu.objects.create(
+                        traseu=traseu,
+                        atractie=atractie,
+                        ordine=i + 1
+                    )
+            
+            count += 1
+        
+        self.stdout.write(f'  Trasee prestabilite: {count} adăugate')
