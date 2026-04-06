@@ -6,10 +6,11 @@ import Harta from './components/Harta';
 import Login from './pages/Login';
 import Register from "./pages/Register";
 import Profil from "./pages/Profil";
+import TrseePrestabilite from "./pages/TrseePrestabilite";
 
 function ProtectedRoute({ children }) {
   const { utilizator, loading } = useAuth();
-  if(loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
   return utilizator ? children : <Navigate to="/login" />;
 }
 
@@ -29,6 +30,11 @@ function AppContent() {
           <Route path="/profil" element={
             <ProtectedRoute>
               <Profil />
+            </ProtectedRoute>
+          } />
+          <Route path="/trasee-prestabilite" element={
+            <ProtectedRoute>
+              <TrseePrestabilite />
             </ProtectedRoute>
           } />
         </Routes>

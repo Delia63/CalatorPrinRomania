@@ -4,19 +4,21 @@ import { useAuth } from '../context/AuthContext';
 import Notificari from './Notificari';
 
 function Navbar() {
-    const { utilizator, logout } = useAuth();
-    const navigate = useNavigate();
+  const { utilizator, logout } = useAuth();
+  const navigate = useNavigate();
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
-    return (
-    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 2000,
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 2000,
       background: '#1a237e', color: 'white', padding: '0 20px',
       display: 'flex', alignItems: 'center', height: '56px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+    }}>
       <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '18px', flex: 1 }}>
         🗺️ CalătorPrinRomânia
       </Link>
@@ -24,14 +26,19 @@ function Navbar() {
         {utilizator ? (
           <>
             <Notificari />
+            <Link to="/trasee-prestabilite" style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}>
+              🗺️ Trasee
+            </Link>
             <Link to="/profil" style={{ color: 'white', textDecoration: 'none', fontSize: '14px', marginRight: '10px', cursor: 'pointer' }}>
-                👤 {utilizator.username} | ⭐ {utilizator.xp} XP
+              👤 {utilizator.username} | ⭐ {utilizator.xp} XP
             </Link>
 
             <button onClick={handleLogout}
-              style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.2)',
+              style={{
+                padding: '6px 14px', background: 'rgba(255,255,255,0.2)',
                 color: 'white', border: '1px solid rgba(255,255,255,0.4)',
-                borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
+                borderRadius: '4px', cursor: 'pointer', fontSize: '13px'
+              }}>
               Ieși
             </button>
           </>
@@ -39,8 +46,10 @@ function Navbar() {
           <>
             <Link to="/login" style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}>Login</Link>
             <Link to="/register"
-              style={{ padding: '6px 14px', background: '#2196F3', color: 'white',
-                textDecoration: 'none', borderRadius: '4px', fontSize: '13px' }}>
+              style={{
+                padding: '6px 14px', background: '#2196F3', color: 'white',
+                textDecoration: 'none', borderRadius: '4px', fontSize: '13px'
+              }}>
               Înregistrare
             </Link>
           </>

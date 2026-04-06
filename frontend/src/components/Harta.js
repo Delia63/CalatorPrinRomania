@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FormularTraseu from './FormularTraseu';
 import RecenziiAtractie from './RecenziiAtractie';
+import PanouFiltre from './PanouFiltre';
 
 function getEmoji(tip) {
   const emojiMap = {
@@ -19,8 +20,8 @@ function getEmoji(tip) {
     'rezervatie': '🌿',
   };
   const tipLower = (tip || '').toLowerCase();
-  for(const [cheie, emoji] of Object.entries(emojiMap)) {
-    if(tipLower.includes(cheie)) return emoji;
+  for (const [cheie, emoji] of Object.entries(emojiMap)) {
+    if (tipLower.includes(cheie)) return emoji;
   }
   return '📍';
 }
@@ -42,19 +43,26 @@ function Harta() {
   const [infTraseu, setInfTraseu] = useState(null);
   const [ghicire, setGhicire] = useState({});
 
-  useEffect(() => {
-    fetch('http://localhost:8000/api/atractii/')
+  const fetchAtractii = (queryString = '') => {
+    const url = queryString
+      ? `http://localhost:8000/api/atractii/?${queryString}`
+      : 'http://localhost:8000/api/atractii/';
+    fetch(url)
       .then(response => response.json())
       .then(data => {
-        if (Array.isArray(data)) setAtractii(data); 
+        if (Array.isArray(data)) setAtractii(data);
         else setAtractii(data.results || []);
       });
+  };
+
+  useEffect(() => {
+    fetchAtractii();
   }, []);
 
   const handleCalculeaza = (data) => {
     //extragerea coordonatelor pt linie
     const coords = data.geojson.features[0].geometry.coordinates;
-    const latlngs = coords.map(([lon,lat]) => [lat,lon]);
+    const latlngs = coords.map(([lon, lat]) => [lat, lon]);
     setTraseu(latlngs);
     setAtractiiTraseu(data.atractii);
     setInfTraseu({
@@ -82,6 +90,7 @@ function Harta() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <FormularTraseu onCalculeaza={handleCalculeaza} />
+      <PanouFiltre onFiltreaza={fetchAtractii} />
       {infTraseu && (
         <div style={{
           position: 'absolute', top: 20, right: 20, zIndex: 1000,
@@ -133,8 +142,10 @@ function Harta() {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleGhicire(atractie.id, e.target.value);
                           }}
-                          style={{ width: '100%', padding: '4px', boxSizing: 'border-box',
-                            borderRadius: '4px', border: '1px solid #ccc', fontSize: '12px' }}
+                          style={{
+                            width: '100%', padding: '4px', boxSizing: 'border-box',
+                            borderRadius: '4px', border: '1px solid #ccc', fontSize: '12px'
+                          }}
                         />
                         {stareGhicire?.rezultat?.corect === false && (
                           <p style={{ color: 'red', fontSize: '11px', margin: '4px 0 0' }}>
