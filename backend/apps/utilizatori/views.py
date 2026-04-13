@@ -34,6 +34,24 @@ class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = UtilizatorBadgeSerializer(badges, many=True)
         return Response(serializer.data)
     
+    @action(detail=False, methods=['get'], url_path='toate')
+    def toate(self, request):
+        toate_badge = Badge.objects.all()
+        badge_obtinute = set(
+            UtilizatorBadge.objects.filter(utilizator = request.user).values_list('badge_id', flat=True)
+        )
+        rezultat = []
+        for badge in toate_badge:
+            rezultat.append({
+                'id': badge.id,
+                'nume': badge.nume,
+                'descriere': badge.descriere,
+                'criteriu': badge.criteriu,
+                'iconUrl': badge.iconUrl,
+                'obtinut': badge.id in badge_obtinute,
+            })
+        return Response(rezultat)
+    
 
 class DescoperaAtractieView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
