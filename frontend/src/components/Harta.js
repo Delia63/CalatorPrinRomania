@@ -42,6 +42,8 @@ function Harta() {
   const [atractiiTraseu, setAtractiiTraseu] = useState([]);
   const [infTraseu, setInfTraseu] = useState(null);
   const [ghicire, setGhicire] = useState({});
+  const [festivaluri, setFestivaluri] = useState([]);
+  const [preparate, setPreparate] = useState([]);
 
   const fetchAtractii = (queryString = '') => {
     const url = queryString
@@ -60,7 +62,6 @@ function Harta() {
   }, []);
 
   const handleCalculeaza = (data) => {
-    //extragerea coordonatelor pt linie
     const coords = data.geojson.features[0].geometry.coordinates;
     const latlngs = coords.map(([lon, lat]) => [lat, lon]);
     setTraseu(latlngs);
@@ -69,6 +70,8 @@ function Harta() {
       distantaKm: data.distantaKm,
       durataMin: data.durataMin
     });
+    setFestivaluri(data.festivaluri || []);
+    setPreparate(data.preparate || []);
   };
 
   const handleGhicire = async (atractieId, raspuns) => {
@@ -100,6 +103,46 @@ function Harta() {
           <p style={{ margin: 0 }}>📏 <strong>{infTraseu.distantaKm} km</strong></p>
           <p style={{ margin: '4px 0 0 0' }}>⏱️ <strong>{infTraseu.durataMin} min</strong></p>
           <p style={{ margin: '4px 0 0 0' }}>📍 <strong>{atractiiTraseu.length}</strong> atracții pe traseu</p>
+        </div>
+      )}
+      {/* Festivaluri + Gastronomie */}
+      {(festivaluri.length > 0 || preparate.length > 0) && (
+        <div style={{
+          position: 'absolute', bottom: 20, right: 20, zIndex: 1000,
+          background: 'white', padding: '14px', borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)', maxWidth: '280px',
+          maxHeight: '300px', overflowY: 'auto',
+        }}>
+          {festivaluri.length > 0 && (
+            <div style={{ marginBottom: '10px' }}>
+              <h4 style={{ margin: '0 0 6px', fontSize: '14px' }}>🎪 Festivaluri în perioadă</h4>
+              {festivaluri.map(f => (
+                <div key={f.id} style={{
+                  background: '#fff3e0', padding: '6px 8px', borderRadius: '4px',
+                  marginBottom: '4px', fontSize: '12px', borderLeft: '3px solid #E65100',
+                }}>
+                  <strong>{f.nume}</strong>
+                  <div style={{ color: '#888', fontSize: '11px' }}>
+                    {f.dataStart} → {f.dataEnd}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {preparate.length > 0 && (
+            <div>
+              <h4 style={{ margin: '0 0 6px', fontSize: '14px' }}>🍽️ Gastronomie locală</h4>
+              {preparate.map(p => (
+                <div key={p.id} style={{
+                  background: '#e8f5e9', padding: '6px 8px', borderRadius: '4px',
+                  marginBottom: '4px', fontSize: '12px', borderLeft: '3px solid #2E7D32',
+                }}>
+                  <strong>{p.nume}</strong>
+                  <span style={{ color: '#888', fontSize: '11px', marginLeft: '6px' }}>({p.regiune})</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
       <MapContainer center={[45.9, 25.0]} zoom={7} style={{ width: '100%', height: '100%' }}>
