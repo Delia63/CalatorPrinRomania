@@ -2,70 +2,150 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from '../context/AuthContext';
 
 function Profil() {
-    const { utilizator } = useAuth()
-    const [ progres, setProgres ] = useState(null);
-    const [ badges, setBadges ] = useState([]);
-    const [ istoric, setIstoric ] = useState([]);
+    const { utilizator } = useAuth();
+    const [progres, setProgres] = useState(null);
+    const [badges, setBadges] = useState([]);
+    const [istoric, setIstoric] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        fetch('http://localhost:8000/api/utilizatori/progres/', { headers })
-            .then(res => res.json())
-            .then(data => setProgres(data));
-
-        fetch('http://localhost:8000/api/trasee/', { headers })
-            .then(res => res.json())
-            .then(data => {
-                setIstoric(Array.isArray(data) ? data : (data.results || [] ));
-            });
-        
-        fetch('http://localhost:8000/api/utilizatori/badges/ale-mele/', { headers })
-            .then(res => res.json())
-            .then(data => setBadges(Array.isArray(data) ? data : (data.results || [])))
-            .catch(() => setBadges([]));
+        Promise.all([
+            fetch('http://localhost:8000/api/utilizatori/progres/', { headers }).then(r => r.json()),
+            fetch('http://localhost:8000/api/utilizatori/badges/toate/', { headers }).then(r => r.json()),
+            fetch('http://localhost:8000/api/trasee/', { headers }).then(r => r.json()),
+        ])
+            .then(([progresData, badgesData, istoricData]) => {
+                setProgres(progresData);
+                setBadges(Array.isArray(badgesData) ? badgesData : (badgesData.results || []));
+                setIstoric(Array.isArray(istoricData) ? istoricData : (istoricData.results || []));
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
     }, []);
 
-    if(!progres) return <div style={{ padding: '20px' }}>Se încarcă profilul...</div>;
+    if (loading) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', marginBottom: '8px', animation: 'spin 1s linear infinite' }}>🗺️</div>
+                <p style={{ color: '#888' }}>Se încarcă profilul...</p>
+            </div>
+        </div>
+    );
+
+    const xpPentruNivel = progres ? (progres.nivel * 100) : 100;
+    const procentXp = progres ? Math.min((progres.xp % 100) / 100 * 100, 100) : 0;
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
-                <h2 style={{ marginBottom: '15px' }}>👤 Profilul meu: {progres.username}</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <p>⭐ <strong>XP Total:</strong> {progres.xp}</p>
-                    <p>📈 <strong>Nivel:</strong> {progres.nivel}</p>
-                    <p>🗺️ <strong>Atracții descoperite:</strong> {progres.atractii_descoperite}</p>
-                    <p>🏅 <strong>Badge-uri obținute:</strong> {progres.badges_total}</p>
+            {/* Card profil */}
+            <div style={{
+                background: 'linear-gradient(135deg, #1a237e, #0d47a1)',
+                color: 'white', padding: '24px', borderRadius: '12px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)', marginBottom: '20px',
+            }}>
+                <h2 style={{ marginBottom: '16px' }}>👤 {progres.username}</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.15)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '24px' }}>⭐</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{progres.xp}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.8 }}>XP Total</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.15)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '24px' }}>📈</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{progres.nivel}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.8 }}>Nivel</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.15)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '24px' }}>🗺️</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{progres.atractii_descoperite}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.8 }}>Descoperiri</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.15)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '24px' }}>🏅</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{progres.badges_total}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.8 }}>Badge-uri</div>
+                    </div>
+                </div>
+                {/* Bară XP */}
+                <div style={{ marginTop: '16px' }}>
+                    <div style={{ fontSize: '12px', marginBottom: '4px', opacity: 0.8 }}>
+                        Progres nivel: {progres.xp % 100}/100 XP
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', height: '8px' }}>
+                        <div style={{
+                            background: '#FF6F00', borderRadius: '10px', height: '8px',
+                            width: `${procentXp}%`, transition: 'width 0.5s ease',
+                        }} />
+                    </div>
                 </div>
             </div>
-            <div style={{ marginBottom: '20px' }}>
-                <h3>🏅 Badge-urile mele</h3>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+
+            {/* Badge-uri - toate */}
+            <div style={{
+                background: 'white', padding: '20px', borderRadius: '12px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.08)', marginBottom: '20px',
+            }}>
+                <h3 style={{ marginBottom: '16px' }}>🏅 Toate Badge-urile</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
                     {badges.map(b => (
-                        <div key={b.id} style={{ background: '#e3f2fd', padding: '10px', borderRadius: '8px', border: '1px solid #2196f3', textAlign: 'center', minWidth: '120px' }}>
-                            <div style={{ fontSize: '24px' }}>🎖️</div>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{b.badge.nume}</div>
-                            <div style={{ fontSize: '11px', color: '#666' }}>{new Date(b.dataObtinere).toLocaleDateString()}</div>
+                        <div key={b.id} style={{
+                            padding: '14px', borderRadius: '10px', textAlign: 'center',
+                            background: b.obtinut ? '#e8f5e9' : '#f5f5f5',
+                            border: b.obtinut ? '2px solid #4CAF50' : '2px solid #e0e0e0',
+                            opacity: b.obtinut ? 1 : 0.5,
+                            transition: 'transform 0.2s',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <div style={{ fontSize: '28px', marginBottom: '4px' }}>
+                                {b.iconUrl || '🎖️'}
+                            </div>
+                            <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>
+                                {b.nume}
+                            </div>
+                            <div style={{ fontSize: '10px', color: '#888' }}>
+                                {b.descriere}
+                            </div>
+                            {b.obtinut && (
+                                <div style={{
+                                    marginTop: '4px', fontSize: '10px', color: '#4CAF50', fontWeight: 'bold',
+                                }}>
+                                    ✅ Obținut
+                                </div>
+                            )}
                         </div>
                     ))}
-                    {badges.length === 0 && <p style={{ color: '#888' }}>Încă n-ai obținut niciun badge. Spor la explorat!</p>}
                 </div>
             </div>
-            <div>
-                <h3>🕒 Istoric Trasee</h3>
-                <div style={{ marginTop: '10px' }}>
-                    {istoric.map(t => (
-                        <div key={t.id} style={{ background: 'white', padding: '12px', borderRadius: '6px', borderLeft: '4px solid #1a237e', marginBottom: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                            <div style={{ fontWeight: 'bold' }}>{t.punctStart} → {t.punctSosire}</div>
-                            <div style={{ fontSize: '13px', color: '#555' }}>
-                                📏 {t.distantaKm} km | ⏱️ {t.durataMin} min
-                            </div>
+
+            {/* Istoric trasee */}
+            <div style={{
+                background: 'white', padding: '20px', borderRadius: '12px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+            }}>
+                <h3 style={{ marginBottom: '16px' }}>🕒 Istoric Trasee</h3>
+                {istoric.map(t => (
+                    <div key={t.id} style={{
+                        padding: '12px', borderRadius: '8px', borderLeft: '4px solid #1a237e',
+                        marginBottom: '10px', background: '#fafafa',
+                        transition: 'transform 0.2s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+                    >
+                        <div style={{ fontWeight: 'bold' }}>{t.punctStart} → {t.punctSosire}</div>
+                        <div style={{ fontSize: '13px', color: '#555' }}>
+                            📏 {t.distantaKm} km | ⏱️ {t.durataMin} min
                         </div>
-                    ))}
-                    {istoric.length === 0 && <p style={{ color: '#888' }}>Nu ai niciun traseu salvat în istoric.</p>}
-                </div>
+                    </div>
+                ))}
+                {istoric.length === 0 && (
+                    <p style={{ color: '#888', textAlign: 'center' }}>Nu ai niciun traseu salvat.</p>
+                )}
             </div>
         </div>
     );

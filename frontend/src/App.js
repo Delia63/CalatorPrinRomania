@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Register from "./pages/Register";
 import Profil from "./pages/Profil";
 import TrseePrestabilite from "./pages/TrseePrestabilite";
+import LandingPage from "./pages/LandingPage";
+import BadgeToast from "./components/BadgeToast";
 
 function ProtectedRoute({ children }) {
   const { utilizator, loading } = useAuth();
@@ -15,17 +17,19 @@ function ProtectedRoute({ children }) {
 }
 
 function AppContent() {
+  const { utilizator } = useAuth();
+
   return (
     <BrowserRouter>
       <Navbar />
+      <BadgeToast />
       <div style={{ paddingTop: '56px', height: '100vh', boxSizing: 'border-box' }}>
         <Routes>
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={
-            <ProtectedRoute>
-              <Harta />
-            </ProtectedRoute>
+            utilizator ? <Harta /> : <LandingPage />
           } />
           <Route path="/profil" element={
             <ProtectedRoute>
@@ -42,6 +46,7 @@ function AppContent() {
     </BrowserRouter>
   );
 }
+
 
 function App() {
   return (
