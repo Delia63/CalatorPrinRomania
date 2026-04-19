@@ -39,8 +39,12 @@ def distanta_punct_la_linie(punct, linie):
     
 
 class TraseuViewSet(viewsets.ModelViewSet):
-    queryset = Traseu.objects.all()
     serializer_class = TraseuSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Traseu.objects.filter(utilizator=self.request.user)
+        return Traseu.objects.none()
 
     @action(detail=False, methods=['post'], url_path='calculeaza')
     def calculeaza(self, request):
@@ -173,13 +177,15 @@ class TraseuViewSet(viewsets.ModelViewSet):
         }
 
         if request.user.is_authenticated:
-            Traseu.objects.create(
-                utilizator = request.user,
-                punctStart = punct_start,
-                punctSosire = punct_sosire,
-                distantaKm = res_data['distantaKm'],
-                durataMin = res_data['durataMin'],
-                tip = 'automat'
+            Traseu.objects.get_or_create(
+                utilizator=request.user,
+                punctStart=punct_start,
+                punctSosire=punct_sosire,
+                defaults={
+                    'distantaKm': res_data['distantaKm'],
+                    'durataMin': res_data['durataMin'],
+                    'tip': 'automat',
+                }
             )
 
         return Response(res_data)

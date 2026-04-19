@@ -1,5 +1,42 @@
 import React, { useState } from "react";
 
+// Formatează yyyy-mm-dd → dd/mm/yyyy pentru afișare
+const formatDataRO = (isoDate) => {
+    if (!isoDate) return '';
+    const [yyyy, mm, dd] = isoDate.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+};
+
+// Component dată: afișează dd/mm/yyyy, deschide calendarul nativ la click
+const DataInput = ({ value, onChange }) => (
+    <div style={{ position: 'relative', flex: 1 }}>
+        {/* Text vizibil în format dd/mm/yyyy */}
+        <input
+            type="text"
+            readOnly
+            value={formatDataRO(value)}
+            placeholder="dd/mm/yyyy"
+            style={{
+                width: '100%', padding: '6px', borderRadius: '4px',
+                border: '1px solid #ccc', fontSize: '12px',
+                boxSizing: 'border-box', background: 'white',
+                cursor: 'pointer'
+            }}
+        />
+        {/* Input dată transparent suprapus — deschide calendarul */}
+        <input
+            type="date"
+            value={value}
+            onChange={onChange}
+            style={{
+                position: 'absolute', top: 0, left: 0,
+                width: '100%', height: '100%',
+                opacity: 0, cursor: 'pointer'
+            }}
+        />
+    </div>
+);
+
 function FormularTraseu({ onCalculeaza }) {
     const [punctStart, setPunctStart] = useState('');
     const [punctSosire, setPunctSosire] = useState('');
@@ -31,13 +68,11 @@ function FormularTraseu({ onCalculeaza }) {
                 })
             });
 
-            const data = await response.json()
+            const data = await response.json();
 
             if (!response.ok) {
                 setEroare(data.error || 'Eroare la calculul traseului!');
-
-            }
-            else {
+            } else {
                 onCalculeaza(data);
             }
         } catch (err) {
@@ -49,9 +84,8 @@ function FormularTraseu({ onCalculeaza }) {
 
     return (
         <div style={{
-            position: 'absolute', top: 20, left: 20, zIndex: 1000,
             background: 'white', padding: '16px', borderRadius: '8px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.2)', width: '280px'
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
         }}>
             <h3 style={{ margin: '0 0 12px 0' }}>Planificare traseu</h3>
             <form onSubmit={handleSubmit}>
@@ -99,23 +133,13 @@ function FormularTraseu({ onCalculeaza }) {
                         📅 Perioadă călătorie (opțional)
                     </label>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                        <input
-                            type="date"
+                        <DataInput
                             value={dataStart}
                             onChange={e => setDataStart(e.target.value)}
-                            style={{
-                                flex: 1, padding: '6px', borderRadius: '4px',
-                                border: '1px solid #ccc', fontSize: '12px'
-                            }}
                         />
-                        <input
-                            type="date"
+                        <DataInput
                             value={dataEnd}
                             onChange={e => setDataEnd(e.target.value)}
-                            style={{
-                                flex: 1, padding: '6px', borderRadius: '4px',
-                                border: '1px solid #ccc', fontSize: '12px'
-                            }}
                         />
                     </div>
                 </div>

@@ -30,9 +30,7 @@ function PanouFiltre({ onFiltreaza }) {
     };
 
     return (
-        <div style={{
-            position: 'absolute', top: 20, left: 20, zIndex: 1000,
-        }}>
+        <div>
             <button
                 onClick={() => setDeschis(!deschis)}
                 style={{

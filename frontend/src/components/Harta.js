@@ -1,10 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FormularTraseu from './FormularTraseu';
 import RecenziiAtractie from './RecenziiAtractie';
 import PanouFiltre from './PanouFiltre';
+
+
+// Component care face automat zoom+centru pe traseu când acesta se schimbă
+function FitBoundsOnRoute({ positions }) {
+  const map = useMap();
+  useEffect(() => {
+    if (positions && positions.length > 0) {
+      map.fitBounds(positions, { padding: [40, 40] });
+    }
+  }, [positions, map]);
+  return null;
+}
+
+// Dreptunghi mondial — stratul exterior al măștii
+const WORLD_OUTER = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
+
 
 function getEmoji(tip) {
   const emojiMap = {
@@ -44,6 +60,7 @@ function Harta() {
   const [ghicire, setGhicire] = useState({});
   const [festivaluri, setFestivaluri] = useState([]);
   const [preparate, setPreparate] = useState([]);
+  const [romaniaBorder, setRomaniaBorder] = useState(null);
 
   const fetchAtractii = (queryString = '') => {
     const url = queryString
@@ -59,6 +76,24 @@ function Harta() {
 
   useEffect(() => {
     fetchAtractii();
+    // Fetch granița exactă a României din GeoJSON oficial
+    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/ROU.geo.json')
+      .then(r => r.json())
+      .then(data => {
+        const geom = data.features[0].geometry;
+        let coords;
+        if (geom.type === 'Polygon') {
+          coords = geom.coordinates[0];
+        } else if (geom.type === 'MultiPolygon') {
+          // ia cel mai mare poligon
+          coords = geom.coordinates.reduce((a, b) =>
+            a[0].length > b[0].length ? a : b
+          )[0];
+        }
+        // GeoJSON: [lng, lat] → Leaflet: [lat, lng]
+        setRomaniaBorder(coords.map(([lng, lat]) => [lat, lng]));
+      })
+      .catch(() => console.warn('Nu s-a putut încărca granița României'));
   }, []);
 
   const handleCalculeaza = (data) => {
@@ -90,10 +125,23 @@ function Harta() {
 
   const listaAfisata = atractiiTraseu.length > 0 ? atractiiTraseu : atractii;
 
+  const formatDurata = (min) => {
+    if (min < 60) return `${min} min`;
+    const ore = Math.floor(min / 60);
+    const minute = min % 60;
+    return minute === 0 ? `${ore}h` : `${ore}h ${minute}min`;
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <FormularTraseu onCalculeaza={handleCalculeaza} />
-      <PanouFiltre onFiltreaza={fetchAtractii} />
+      <div style={{
+        position: 'absolute', top: 20, left: 20, zIndex: 1000,
+        display: 'flex', flexDirection: 'column', gap: '8px',
+        width: '280px',
+      }}>
+        <FormularTraseu onCalculeaza={handleCalculeaza} />
+        <PanouFiltre onFiltreaza={fetchAtractii} />
+      </div>
       {infTraseu && (
         <div style={{
           position: 'absolute', top: 20, right: 20, zIndex: 1000,
@@ -101,7 +149,7 @@ function Harta() {
           boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
         }}>
           <p style={{ margin: 0 }}>📏 <strong>{infTraseu.distantaKm} km</strong></p>
-          <p style={{ margin: '4px 0 0 0' }}>⏱️ <strong>{infTraseu.durataMin} min</strong></p>
+          <p style={{ margin: '4px 0 0 0' }}>⏱️ <strong>{formatDurata(infTraseu.durataMin)}</strong></p>
           <p style={{ margin: '4px 0 0 0' }}>📍 <strong>{atractiiTraseu.length}</strong> atracții pe traseu</p>
         </div>
       )}
@@ -145,12 +193,37 @@ function Harta() {
           )}
         </div>
       )}
-      <MapContainer center={[45.9, 25.0]} zoom={7} style={{ width: '100%', height: '100%' }}>
+      <MapContainer
+        center={[45.9, 25.0]}
+        zoom={7}
+        minZoom={7}
+        zoomControl={false}
+        maxBounds={[
+          [43.6, 20.2],
+          [48.3, 29.7],
+        ]}
+        maxBoundsViscosity={1.0}
+        style={{ width: '100%', height: '100%' }}
+      >
+        <ZoomControl position="bottomright" />
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {/* Mască — acoperă tot ce e în afara României */}
+        {romaniaBorder && (
+          <Polygon
+            positions={[WORLD_OUTER, romaniaBorder]}
+            pathOptions={{
+              fillColor: '#6b7280',
+              fillOpacity: 0.65,
+              stroke: false,
+            }}
+          />
+        )}
+
         {traseu && <Polyline positions={traseu} color="blue" weight={4} />}
+        {traseu && <FitBoundsOnRoute positions={traseu} />}
         {listaAfisata.map(atractie => {
           const emoji = getEmoji(atractie.tip);
           const stareGhicire = ghicire[atractie.id];

@@ -20,7 +20,7 @@ function Register() {
         try {
             const response = await fetch('http://localhost:8000/api/utilizatori/inregistrare/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'applications/json' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
             });
             const data = await response.json();

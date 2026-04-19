@@ -35,8 +35,21 @@ function Profil() {
         </div>
     );
 
+    if (!progres) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+            <p style={{ color: '#888' }}>Nu s-au putut încărca datele profilului.</p>
+        </div>
+    );
+
     const xpPentruNivel = progres ? (progres.nivel * 100) : 100;
     const procentXp = progres ? Math.min((progres.xp % 100) / 100 * 100, 100) : 0;
+
+    const formatDurata = (min) => {
+        if (min < 60) return `${min} min`;
+        const ore = Math.floor(min / 60);
+        const minute = min % 60;
+        return minute === 0 ? `${ore}h` : `${ore}h ${minute}min`;
+    };
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
@@ -139,7 +152,7 @@ function Profil() {
                     >
                         <div style={{ fontWeight: 'bold' }}>{t.punctStart} → {t.punctSosire}</div>
                         <div style={{ fontSize: '13px', color: '#555' }}>
-                            📏 {t.distantaKm} km | ⏱️ {t.durataMin} min
+                            📏 {t.distantaKm} km | ⏱️ {formatDurata(t.durataMin)}
                         </div>
                     </div>
                 ))}
