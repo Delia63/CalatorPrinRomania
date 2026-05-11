@@ -1,7 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import InregistrareView, ProfilView, BadgeViewSet, DescoperaAtractieView, NotificareViewSet, ProgresUtilizatorView, DescopeririMeleView
+from .views import (InregistrareView, ProfilView, BadgeViewSet, DescoperaAtractieView,
+    NotificareViewSet, ProgresUtilizatorView, DescopeririMeleView,
+    AdminDashboardView, AdminUtilizatoriView)
 
 router = DefaultRouter()
 router.register(r'badges', BadgeViewSet)
@@ -16,4 +18,7 @@ urlpatterns = [
     path('descopera/', DescoperaAtractieView.as_view(), name='descopera'),
     path('descoperiri-mele/', DescopeririMeleView.as_view(), name='descoperiri-mele'),
     path('progres/', ProgresUtilizatorView.as_view(), name='progres'),
+    # Admin
+    path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
+    path('admin/utilizatori/', AdminUtilizatoriView.as_view(), name='admin-utilizatori'),
 ]

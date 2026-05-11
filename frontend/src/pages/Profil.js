@@ -6,6 +6,7 @@ function Profil() {
     const [progres, setProgres] = useState(null);
     const [badges, setBadges] = useState([]);
     const [istoric, setIstoric] = useState([]);
+    const [descoperiri, setDescoperiri] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -16,11 +17,13 @@ function Profil() {
             fetch('http://localhost:8000/api/utilizatori/progres/', { headers }).then(r => r.json()),
             fetch('http://localhost:8000/api/utilizatori/badges/toate/', { headers }).then(r => r.json()),
             fetch('http://localhost:8000/api/trasee/', { headers }).then(r => r.json()),
+            fetch('http://localhost:8000/api/utilizatori/descoperiri-mele/', { headers }).then(r => r.json()),
         ])
-            .then(([progresData, badgesData, istoricData]) => {
+            .then(([progresData, badgesData, istoricData, descopeririData]) => {
                 setProgres(progresData);
                 setBadges(Array.isArray(badgesData) ? badgesData : (badgesData.results || []));
                 setIstoric(Array.isArray(istoricData) ? istoricData : (istoricData.results || []));
+                setDescoperiri(Array.isArray(descopeririData) ? descopeririData : (descopeririData.results || []));
                 setLoading(false);
             })
             .catch(() => setLoading(false));
@@ -133,6 +136,56 @@ function Profil() {
                         </div>
                     ))}
                 </div>
+            </div>
+
+            {/* Atractii descoperite */}
+            <div style={{
+                background: 'white', padding: '20px', borderRadius: '12px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.08)', marginBottom: '20px',
+            }}>
+                <h3 style={{ marginBottom: '4px' }}>🗺️ Atracții Descoperite</h3>
+                <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
+                    {descoperiri.length === 0
+                        ? 'Nu ai descoperit nicio atracție încă.'
+                        : `${descoperiri.length} atracț${descoperiri.length === 1 ? 'ie descoperită' : 'ii descoperite'}`}
+                </p>
+                {descoperiri.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '24px', background: '#f5f5f5', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '36px', marginBottom: '8px' }}>🧩</div>
+                        <p style={{ color: '#888', fontSize: '13px' }}>
+                            Mergi pe hartă și ghicește atracțiile pentru a le descoperi!
+                        </p>
+                    </div>
+                ) : (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                        gap: '12px'
+                    }}>
+                        {descoperiri.map(d => (
+                            <div key={d.atractie_id} style={{
+                                padding: '14px', borderRadius: '10px', textAlign: 'center',
+                                background: '#e8f5e9', border: '2px solid #4CAF50',
+                                transition: 'transform 0.2s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <div style={{ fontSize: '28px', marginBottom: '6px' }}>📍</div>
+                                <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px' }}>
+                                    {d.atractie_nume}
+                                </div>
+                                {d.dataDescoperire && (
+                                    <div style={{ fontSize: '11px', color: '#4CAF50' }}>
+                                        ✅ {new Date(d.dataDescoperire).toLocaleDateString('ro-RO', {
+                                            day: '2-digit', month: '2-digit', year: 'numeric'
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Istoric trasee */}

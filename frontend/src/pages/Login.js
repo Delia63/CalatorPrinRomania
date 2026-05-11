@@ -50,6 +50,11 @@ function Login() {
         <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px' }}>
           Nu ai cont? <Link to="/register">Înregistrează-te</Link>
         </p>
+        <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #eee' }}>
+          <Link to="/admin-login" style={{ fontSize: '11px', color: '#bbb', textDecoration: 'none' }}>
+            🛡️ Acces administrator
+          </Link>
+        </div>
       </div>
     </div>
     );

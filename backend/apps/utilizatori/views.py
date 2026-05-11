@@ -1,8 +1,9 @@
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import models as django_models
 from .models import Utilizator, Badge, UtilizatorBadge, DescoperiAtractie, Notificare
 from .serializers import (
     InregistrareSerializer, UtilizatorSerializer, BadgeSerializer, UtilizatorBadgeSerializer,
@@ -159,3 +160,47 @@ class ProgresUtilizatorView(generics.RetrieveAPIView):
             'badges_total': nr_badges,
         })
 
+class AdminDashboardView(generics.GenericAPIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        from apps.recenzii.models import Recenzie
+        from apps.trasee.models import Traseu
+        return Response({
+            'total_utilizatori': Utilizator.objects.filter(is_staff=False).count(),
+            'total_atractii': AtractieTuristica.objects.count(),
+            'total_trasee': Traseu.objects.count(),
+            'total_badges_acordate': UtilizatorBadge.objects.count(),
+            'recenzii_in_asteptare': Recenzie.objects.filter(status='in_asteptare').count(),
+            'recenzii_aprobate': Recenzie.objects.filter(status='aprobata').count(),
+            'recenzii_respinse': Recenzie.objects.filter(status='respinsa').count(),
+        })
+
+
+class AdminUtilizatoriView(generics.ListAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = UtilizatorSerializer
+
+    def get_queryset(self):
+        return Utilizator.objects.filter(is_staff=False).annotate(
+            nr_descoperiri=django_models.Count('descoperiri', filter=django_models.Q(descoperiri__esteDescoperita='D')),
+            nr_badges=django_models.Count('badge_uri'),
+        ).order_by('-xp')
+
+    def list(self, request):
+        utilizatori = Utilizator.objects.filter(is_staff=False).order_by('-xp')
+        rezultat = []
+        for u in utilizatori:
+            nr_desc = DescoperiAtractie.objects.filter(utilizator=u, esteDescoperita='D').count()
+            nr_badges = UtilizatorBadge.objects.filter(utilizator=u).count()
+            rezultat.append({
+                'id': u.id,
+                'username': u.username,
+                'email': u.email,
+                'xp': u.xp,
+                'nivel': u.nivel,
+                'nr_descoperiri': nr_desc,
+                'nr_badges': nr_badges,
+                'date_joined': u.date_joined.strftime('%d/%m/%Y'),
+            })
+        return Response(rezultat)

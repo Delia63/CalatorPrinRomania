@@ -30,8 +30,8 @@ class InregistrareSerializer(serializers.ModelSerializer):
 class UtilizatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Utilizator
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'rol', 'nivel', 'xp')
-        read_only_fields = ('rol', 'nivel', 'xp')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'rol', 'nivel', 'xp', 'is_staff')
+        read_only_fields = ('rol', 'nivel', 'xp', 'is_staff')
 
 
 class BadgeSerializer(serializers.ModelSerializer):

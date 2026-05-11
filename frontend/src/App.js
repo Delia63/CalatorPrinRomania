@@ -10,6 +10,10 @@ import TrseePrestabilite from "./pages/TrseePrestabilite";
 import LandingPage from "./pages/LandingPage";
 import BadgeToast from "./components/BadgeToast";
 import Recenzii from "./pages/Recenzii";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRecenzii from "./pages/AdminRecenzii";
+import AdminUtilizatori from "./pages/AdminUtilizatori";
 
 function ProtectedRoute({ children }) {
   const { utilizator, loading } = useAuth();
@@ -47,6 +51,11 @@ function AppContent() {
               <Recenzii />
             </ProtectedRoute>
           } />
+          {/* Admin */}
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/recenzii" element={<AdminRecenzii />} />
+          <Route path="/admin/utilizatori" element={<AdminUtilizatori />} />
         </Routes>
       </div>
     </BrowserRouter>
