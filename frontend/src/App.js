@@ -9,6 +9,7 @@ import Profil from "./pages/Profil";
 import TrseePrestabilite from "./pages/TrseePrestabilite";
 import LandingPage from "./pages/LandingPage";
 import BadgeToast from "./components/BadgeToast";
+import Recenzii from "./pages/Recenzii";
 
 function ProtectedRoute({ children }) {
   const { utilizator, loading } = useAuth();
@@ -39,6 +40,11 @@ function AppContent() {
           <Route path="/trasee-prestabilite" element={
             <ProtectedRoute>
               <TrseePrestabilite />
+            </ProtectedRoute>
+          } />
+          <Route path="/recenzii" element={
+            <ProtectedRoute>
+              <Recenzii />
             </ProtectedRoute>
           } />
         </Routes>

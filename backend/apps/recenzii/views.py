@@ -6,7 +6,8 @@ from django.db.models import Avg
 
 from .models import Recenzie, ImagineRecenzie
 from .serializers import RecenzieSerializer,ImagineRecenzieSerializer
-from apps.utilizatori.models import Notificare, Utilizator
+from apps.utilizatori.models import Notificare, Utilizator, DescoperiAtractie
+from rest_framework import serializers as drf_serializers
 
 class RecenzieViewSet(viewsets.ModelViewSet):
     serializer_class = RecenzieSerializer
@@ -20,7 +21,23 @@ class RecenzieViewSet(viewsets.ModelViewSet):
         return queryset
     
     def perform_create(self, serializer):
+        atractie_id = self.request.data.get('atractie')
+
+        # Verificăm că utilizatorul a descoperit atracția
+        a_descoperit = DescoperiAtractie.objects.filter(
+            utilizator=self.request.user,
+            atractie_id=atractie_id,
+            esteDescoperita='D'
+        ).exists()
+
+        if not a_descoperit:
+            raise drf_serializers.ValidationError(
+                "Trebuie să descoperi mai întâi această atracție pentru a putea lăsa o recenzie!"
+            )
+
         recenzie = serializer.save(utilizator=self.request.user)
+
+        # Notificăm adminii
         admini = Utilizator.objects.filter(is_staff=True)
         for admin in admini:
             Notificare.objects.create(

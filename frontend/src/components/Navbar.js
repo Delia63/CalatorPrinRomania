@@ -29,6 +29,9 @@ function Navbar() {
             <Link to="/trasee-prestabilite" style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}>
               🗺️ Trasee
             </Link>
+            <Link to="/recenzii" style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}>
+              💬 Recenzii
+            </Link>
             <Link to="/profil" style={{ color: 'white', textDecoration: 'none', fontSize: '14px', marginRight: '10px', cursor: 'pointer' }}>
               👤 {utilizator.username} | ⭐ {utilizator.xp} XP
             </Link>

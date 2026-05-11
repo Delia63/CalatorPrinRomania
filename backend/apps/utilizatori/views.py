@@ -53,6 +53,25 @@ class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(rezultat)
     
 
+class DescopeririMeleView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        descoperiri = DescoperiAtractie.objects.filter(
+            utilizator=request.user,
+            esteDescoperita='D'
+        ).select_related('atractie')
+        rezultat = [
+            {
+                'atractie_id': d.atractie.id,
+                'atractie_nume': d.atractie.nume,
+                'dataDescoperire': d.dataDescoperire,
+            }
+            for d in descoperiri
+        ]
+        return Response(rezultat)
+
+
 class DescoperaAtractieView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 

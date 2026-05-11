@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import FormularRecenzie from "./FormularRecenzie";
 
 function RecenziiAtractie({ atractieId }) {
     const [recenzii, setRecenzii] = useState([]);
@@ -7,9 +6,7 @@ function RecenziiAtractie({ atractieId }) {
     const fetchRecenzii = () => {
         const token = localStorage.getItem('access_token');
         fetch(`http://localhost:8000/api/recenzii/aprobate/?atractie=${atractieId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(res => res.json())
             .then(data => {
@@ -25,14 +22,11 @@ function RecenziiAtractie({ atractieId }) {
 
     return (
         <div style={{ marginTop: '10px' }}>
-            {/* Recenzii aprobate */}
             <h4 style={{ margin: '0 0 8px', fontSize: '14px' }}>
                 💬 Recenzii ({recenzii.length})
             </h4>
             {recenzii.length === 0 ? (
-                <p style={{ color: '#888', fontSize: '12px' }}>
-                    Nicio recenzie încă.
-                </p>
+                <p style={{ color: '#888', fontSize: '12px' }}>Nicio recenzie încă.</p>
             ) : (
                 recenzii.map(r => (
                     <div key={r.id} style={{
@@ -44,7 +38,6 @@ function RecenziiAtractie({ atractieId }) {
                             {r.utilizator_username} — {'⭐'.repeat(r.nota)}
                         </div>
                         <p style={{ margin: '4px 0' }}>{r.text}</p>
-                        {/* Imagini */}
                         {r.imagini && r.imagini.length > 0 && (
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                                 {r.imagini.map(img => (
@@ -61,16 +54,13 @@ function RecenziiAtractie({ atractieId }) {
                             </div>
                         )}
                         <div style={{ color: '#999', fontSize: '10px', marginTop: '4px' }}>
-                            {new Date(r.data).toLocaleDateString()}
+                            {new Date(r.data).toLocaleDateString('ro-RO', {
+                                day: '2-digit', month: '2-digit', year: 'numeric'
+                            })}
                         </div>
                     </div>
                 ))
             )}
-            {/* Formular adăugare recenzie */}
-            <FormularRecenzie
-                atractieId={atractieId}
-                onRecenzieAdaugata={fetchRecenzii}
-            />
         </div>
     );
 }
