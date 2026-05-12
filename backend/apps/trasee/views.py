@@ -43,7 +43,7 @@ class TraseuViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Traseu.objects.filter(utilizator=self.request.user)
+            return Traseu.objects.filter(utilizator=self.request.user).order_by('-id')
         return Traseu.objects.none()
 
     @action(detail=False, methods=['post'], url_path='calculeaza')

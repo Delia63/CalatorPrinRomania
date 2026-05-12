@@ -6,9 +6,21 @@ from .models import AtractieTuristica
 from .serializers import AtractieTuristicaSerializer
 from apps.utilizatori.models import DescoperiAtractie, Badge, UtilizatorBadge, Notificare
 from django.utils import timezone
+import unicodedata
+
+def _normalizeaza(text: str) -> str:
+    """Lowercase + elimina diacritice pentru comparare flexibila."""
+    # NFD descompune caracterele cu diacritice (ex: ă -> a + combinare)
+    nfkd = unicodedata.normalize('NFD', text.lower())
+    # Pastram doar caracterele ASCII (eliminam diacriticele)
+    ascii_text = ''.join(c for c in nfkd if unicodedata.category(c) != 'Mn')
+    # Inlocuim si variantele speciale romanesti care nu sunt acoperite de NFD
+    return ascii_text.replace('ș', 's').replace('ț', 't').replace('Ș', 's').replace('Ț', 't')
+
 
 class AtractieTuristicaViewSet(viewsets.ModelViewSet):
     serializer_class = AtractieTuristicaSerializer
+    pagination_class = None  # returnează toate atracțiile fără paginare
 
     def get_queryset(self):
         queryset = AtractieTuristica.objects.all()
@@ -44,10 +56,10 @@ class AtractieTuristicaViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def ghiceste(self, request, pk=None):
         atractie = self.get_object()
-        raspuns = request.data.get('raspuns', '').strip().lower()
-        raspuns_corect = atractie.nume.strip().lower()
+        raspuns = request.data.get('raspuns', '').strip()
+        raspuns_corect = atractie.nume.strip()
 
-        if raspuns == raspuns_corect:
+        if _normalizeaza(raspuns) == _normalizeaza(raspuns_corect):
             # Înregistrăm descoperirea
             descoperire, created = DescoperiAtractie.objects.get_or_create(
                 utilizator=request.user,

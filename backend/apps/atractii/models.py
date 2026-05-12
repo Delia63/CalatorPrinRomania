@@ -11,7 +11,7 @@ class AtractieTuristica(models.Model):
     programVizitare = models.CharField(max_length=255, blank=True, default='')
     tarif = models.DecimalField(max_digits=19, decimal_places=2, default=0)
     ratingMediu = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    imagineCopertaUrl = models.CharField(max_length=255, blank=True, default='')
+    imagineCopertaUrl = models.URLField(max_length=2000, blank=True, default='')
     curiozitate = models.TextField(blank=True, default='')  # hint pt mecanism ghicire
 
     class Meta:

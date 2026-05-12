@@ -61,6 +61,7 @@ function Harta() {
   const [festivaluri, setFestivaluri] = useState([]);
   const [preparate, setPreparate] = useState([]);
   const [romaniaBorder, setRomaniaBorder] = useState(null);
+  const [descoperite, setDescoperite] = useState(new Set()); // ID-uri atracții descoperite anterior
 
   const fetchAtractii = (queryString = '') => {
     const url = queryString
@@ -69,14 +70,30 @@ function Harta() {
     fetch(url)
       .then(response => response.json())
       .then(data => {
-        if (Array.isArray(data)) setAtractii(data);
-        else setAtractii(data.results || []);
-      });
+        const lista = Array.isArray(data) ? data : (data.results || []);
+        console.log('Atracții încărcate:', lista.length);
+        setAtractii(lista);
+      })
+      .catch(err => console.error('Eroare fetch atracții:', err));
   };
 
   useEffect(() => {
     fetchAtractii();
-    // Fetch granița exactă a României din GeoJSON oficial
+
+    // Fetch atracții descoperite anterior (din DB)
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      fetch('http://localhost:8000/api/utilizatori/descoperiri-mele/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(r => r.json())
+        .then(data => {
+          const ids = new Set((Array.isArray(data) ? data : (data.results || [])).map(d => d.atractie_id));
+          setDescoperite(ids);
+        })
+        .catch(() => {});
+    }
+
     fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/ROU.geo.json')
       .then(r => r.json())
       .then(data => {
@@ -227,20 +244,68 @@ function Harta() {
         {listaAfisata.map(atractie => {
           const emoji = getEmoji(atractie.tip);
           const stareGhicire = ghicire[atractie.id];
+          const esteDescoperit = stareGhicire?.rezultat?.corect || descoperite.has(atractie.id);
           return (
             <Marker
               key={atractie.id}
               position={[atractie.latitudine, atractie.longitudine]}
               icon={createEmojiIcon(emoji)}
             >
-              <Popup minWidth={220}>
+              <Popup minWidth={260} maxWidth={300}>
+                {/* Poza de copertă — afișată după descoperire (din sesiune sau DB) */}
+                {atractie.imagineCopertaUrl && esteDescoperit && (
+                  <img
+                    src={atractie.imagineCopertaUrl}
+                    alt={atractie.nume}
+                    style={{
+                      width: '100%', height: '140px', objectFit: 'cover',
+                      borderRadius: '6px', marginBottom: '8px', display: 'block',
+                    }}
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )}
+
                 <strong style={{ fontSize: '15px' }}>
-                  {emoji} {(atractie.curiozitate && !stareGhicire?.rezultat?.corect) ? '❓ ???' : atractie.nume}
+                  {emoji} {(atractie.curiozitate && !esteDescoperit) ? '❓ ???' : atractie.nume}
                 </strong>
+
                 <p style={{ margin: '4px 0', color: '#555', fontSize: '12px' }}>
-                  {atractie.tip}{(stareGhicire?.rezultat?.corect || !atractie.curiozitate) ? ` | ${atractie.tarif} RON` : ''}
+                  {atractie.tip}
                 </p>
-                {atractie.curiozitate && (
+
+                {/* Detalii vizibile după descoperire */}
+                {(esteDescoperit || !atractie.curiozitate) && (
+                  <div style={{ margin: '6px 0', fontSize: '12px', color: '#444' }}>
+                    {atractie.descriere && (
+                      <p style={{ margin: '0 0 6px', lineHeight: 1.4 }}>
+                        {atractie.descriere.length > 150
+                          ? atractie.descriere.slice(0, 150) + '...'
+                          : atractie.descriere}
+                      </p>
+                    )}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                      {atractie.programVizitare && (
+                        <span style={{
+                          background: '#e3f2fd', padding: '2px 8px',
+                          borderRadius: '12px', fontSize: '11px', color: '#1565c0',
+                        }}>
+                          🕐 {atractie.programVizitare}
+                        </span>
+                      )}
+                      <span style={{
+                        background: atractie.tarif > 0 ? '#fff3e0' : '#e8f5e9',
+                        padding: '2px 8px', borderRadius: '12px',
+                        fontSize: '11px',
+                        color: atractie.tarif > 0 ? '#e65100' : '#2e7d32',
+                      }}>
+                        {atractie.tarif > 0 ? `💰 ${atractie.tarif} RON` : '🆓 Gratuit'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mecanism ghicire — ascuns dacă deja descoperit */}
+                {atractie.curiozitate && !esteDescoperit && (
                   <div style={{ marginTop: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
                     <p style={{ margin: '0 0 6px', fontSize: '12px', fontStyle: 'italic' }}>
                       🧩 {atractie.curiozitate}
@@ -275,6 +340,7 @@ function Harta() {
                     )}
                   </div>
                 )}
+
                 {/* Recenzii */}
                 <RecenziiAtractie atractieId={atractie.id} />
               </Popup>
